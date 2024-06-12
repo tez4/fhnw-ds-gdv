@@ -9,7 +9,7 @@ R-Version: **[Default] [64-bit] C:\\Program Files\\R\\R-4.0.2**
 #### installation and loading of packages
 ```{r message=FALSE, warning=FALSE}
 
-packages <- c("tidyverse", "data.table", "lubridate", "ggplot2", "ggthemes", "svglite")
+packages <- c("tidyverse", "data.table", "lubridate", "ggplot2", "ggthemes", "svglite", "sf")
 
 # Install all the required packages if not yet installed
 installed_packages <- packages %in% rownames(installed.packages())
@@ -504,7 +504,7 @@ plot <- ggplot(
   db_card %>%  group_by(region) %>% summarize(avg_unemp = mean(avg_unemployment)) %>% ungroup(), 
        aes(x = reorder(region, avg_unemp), y = avg_unemp)) +
   geom_bar(alpha = 1, stat = 'identity', fill = '#567eb9') +
-  scale_y_continuous(expand = c(0,0), limits = c(0, 6)) +
+  scale_y_continuous(expand = c(0,0), limits = c(0, 6.5)) +
   scale_x_discrete(expand = c(0,0)) +
   labs(
     title = "Unemployment Rate of Czech Regions",
@@ -517,19 +517,127 @@ plot <- ggplot(
   theme(axis.text.x = element_blank(),
         axis.ticks.x = element_blank(),
         axis.line.x = element_blank(),
-        text = element_text(size = 13) # text size
+        text = element_text(size = 12) # text size
   )
 
-ggsave("output/unemployment_rate_czech_regions.svg", plot = plot, device = "svg", width = 5, height = 5)
+ggsave("output/amounts.pdf", plot = plot, device = "pdf", width = 5, height = 5)
+```
+
+
+```{r, fig.width=5, fig.height=5}
+plot <- ggplot(db_card, aes(x = age_card_purchase, y = ..count..)) +
+  geom_density(bw = 2, alpha = 1, fill = '#567eb9') +
+  scale_x_continuous(name = "age (years)", expand = c(0, 0)) +
+  scale_y_continuous(limits = c(0, 100), expand = c(0, 0), name = "scaled density") +
+  #guides(fill = guide_legend(override.aes = list(linetype = 0)))
+  coord_cartesian(clip = "off") +
+  theme_minimal() +
+  theme(
+    legend.position = "none",
+    legend.justification = c("right", "top"),
+    legend.box.background = element_rect(fill = "white", color = "white"),
+    plot.margin = margin(7, 7, 3, 3),
+    axis.line = element_line(colour = "black")
+  ) +
+  annotate("segment", x=-Inf, xend=Inf, y=-Inf, yend=-Inf)+
+  annotate("segment", x=-Inf, xend=-Inf, y=-Inf, yend=Inf) +
+  labs(
+    title = "Client Age",
+    fill = element_blank()
+  ) +
+  theme(
+    text = element_text(size = 12), # text size
+    plot.margin = margin(5, 15, 5, 5)# change plot margins (borde
+  )
+
+ggsave("output/distributions.pdf", plot = plot, device = "pdf", width = 5, height = 5)
+```
+
+```{r, fig.width=5, fig.height=5}
+plot <- ggplot(db_card, aes(x = age_card_purchase, fill = has_card)) +
+  geom_density(position = "fill", alpha = 1, bw = 2) +
+  scale_x_continuous(expand = c(0,0)) +
+  scale_y_continuous(expand = c(0,0)) +
+  labs(
+    title = "Card Usage by Age",
+    x = "age of account owner (years)",
+    y = "relative proportion",
+    fill = element_blank()
+  ) +
+  theme_classic() + # change theme
+  scale_fill_manual(values = c("#f58518", "#567eb9"), labels = c('has no credit card','owns a credit card')) +
+  theme(legend.position = 'bottom',
+        text = element_text(size = 15), # text size
+        plot.margin = margin(5, 15, 5, 5)) # change plot margins (border)
+
+ggsave("output/proportions.pdf", plot = plot, device = "pdf", width = 5, height = 5)
+  
+```
+
+```{r, fig.width=5, fig.height=5}
+plot <- ggplot(db_card %>% filter(has_card == "hat Kreditkarte"), aes(x = age_card_purchase, y = median_balance_before)) +
+  geom_point(alpha = 0.4) +
+  labs(
+    title = "Balance by Age",
+    x = "Age at Card Purchase", 
+    y = "Median Balance before Purchase",
+    fill = "Nutzung"
+  ) +
+  stat_smooth(fill="#567eb9", color="#567eb9") +
+  theme_minimal() +
+  theme(
+    text = element_text(size = 12), # text size
+  )
+
+ggsave("output/relationships.pdf", plot = plot, device = "pdf", width = 5, height = 5)
+```
+
+```{r}
+czech_regions <- st_read("cz.json")
+
+db_card_agg <- db_card %>%  group_by(region) %>% summarize(avg_unemp = mean(avg_unemployment))
+
+czech_map_data <- czech_regions %>%
+  left_join(db_card_agg, by = c("name" = "region"))
+
+plot <- ggplot(czech_map_data) +
+  geom_sf(aes(fill = avg_unemp), color = "white") +
+  scale_fill_gradient(low = "#cfe6ee", high = "#567eb9", na.value = "#888888") +
+  labs(
+    title = "Unemployment Rate of Czech Regions",
+    fill = "Unemployment Rate (%)"
+  ) +
+  theme_minimal() +
+  theme(legend.position = "bottom") 
+
+ggsave("output/geospatial.pdf", plot = plot, device = "pdf", width = 5, height = 4)
 ```
 
 
 ```{r}
-plot <- ggplot(
-  db_card %>%  group_by(region) %>% summarize(avg_unemp = mean(avg_unemployment)) %>% ungroup(), 
-       aes(x = reorder(region, avg_unemp), y = avg_unemp)) +
-  geom_bar(alpha = 1, stat = 'identity', fill = 'steelblue') +
-  scale_y_continuous(expand = c(0,0)) +
+czech_regions <- st_read("cz.json", )
+```
+
+```{r}
+czech_regions
+```
+
+
+
+```{r, fig.width=5, fig.height=5}
+
+data <- db_card %>%
+  group_by(region) %>%
+  summarize(
+    avg_unemp = mean(avg_unemployment),
+    se_unemp = sd(avg_unemployment) / sqrt(n())  # Standard error calculation
+  ) %>%
+  ungroup()
+
+plot <- ggplot(data, aes(x = reorder(region, avg_unemp), y = avg_unemp)) +
+  geom_bar(alpha = 1, stat = 'identity', fill = '#567eb9') +
+  geom_errorbar(aes(ymin = avg_unemp - se_unemp, ymax = avg_unemp + se_unemp), width = 0.2) +  # Add error bars
+  scale_y_continuous(expand = c(0,0), limits = c(0, 6.5)) +
   scale_x_discrete(expand = c(0,0)) +
   labs(
     title = "Unemployment Rate of Czech Regions",
@@ -537,7 +645,7 @@ plot <- ggplot(
     y = "unemployment rate"
   ) +
   coord_flip() +
-  geom_text(aes(label=paste(round(avg_unemp,1), '%')), hjust = 1.05, color = 'white') +
+  geom_text(aes(label = paste(round(avg_unemp, 1), '%')), hjust = -0.4, color = 'black') +
   theme_classic() +
   theme(axis.text.x = element_blank(),
         axis.ticks.x = element_blank(),
@@ -545,24 +653,9 @@ plot <- ggplot(
         text = element_text(size = 12) # text size
   )
 
-ggsave("unemployment_rate_czech_regions.svg", plot = plot, device = "svg", width = 5, height = 5)
-
+ggsave("output/uncertainty.pdf", plot = plot, device = "pdf", width = 5, height = 5)
 ```
 
-```{r}
-db1 <- db_card %>% group_by(age_card_purchase, region) %>% summarize(amount = n()) %>% ungroup()
-db1
-```
-
-
-```{r}
-ggplot(db1, aes(age_card_purchase, region, fill = amount)) + 
-  geom_tile()
-```
-
-```{r}
-db_card
-```
 
 
 ```{r}
