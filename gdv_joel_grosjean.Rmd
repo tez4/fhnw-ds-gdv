@@ -1,9 +1,13 @@
 ---
-title: "Visualizations of the Data from the Cross-selling in Banking Challenge"
-author: Joel Grosjean
-output: html_notebook
+title: Visualizations for the Fundamentals of Data Visualization (gdv) Module
+author: "Joel Grosjean"
+output:
+  html_document:
+    df_print: paged
 ---
 R-Version: **[Default] [64-bit] C:\\Program Files\\R\\R-4.0.2**
+
+The Data is from the Cross-selling in Banking Challenge.
 
 ***
 #### installation and loading of packages
@@ -509,7 +513,7 @@ plot <- ggplot(
   labs(
     title = "Unemployment Rate of Czech Regions",
     x = element_blank(),
-    y = "unemployment rate"
+    y = "Unemployment Rate (%)"
   ) +
   coord_flip() +
   geom_text(aes(label=paste(round(avg_unemp,1), '%')), hjust = -0.2, color = 'black') +
@@ -528,8 +532,8 @@ print(plot)
 ```{r, fig.width=5, fig.height=5}
 plot <- ggplot(db_card, aes(x = age_card_purchase, y = ..count..)) +
   geom_density(bw = 2, alpha = 1, fill = '#567eb9') +
-  scale_x_continuous(name = "age (years)", expand = c(0, 0)) +
-  scale_y_continuous(limits = c(0, 100), expand = c(0, 0), name = "scaled density") +
+  scale_x_continuous(name = "Age (Years)", expand = c(0, 0)) +
+  scale_y_continuous(limits = c(0, 100), expand = c(0, 0), name = "Scaled Density") +
   #guides(fill = guide_legend(override.aes = list(linetype = 0)))
   coord_cartesian(clip = "off") +
   theme_minimal() +
@@ -548,7 +552,7 @@ plot <- ggplot(db_card, aes(x = age_card_purchase, y = ..count..)) +
   ) +
   theme(
     text = element_text(size = 12), # text size
-    plot.margin = margin(5, 15, 5, 5)# change plot margins (borde
+    plot.margin = margin(5, 15, 5, 5)# change plot margins
   )
 
 ggsave("output/distributions.pdf", plot = plot, device = "pdf", width = 5, height = 5)
@@ -556,37 +560,40 @@ print(plot)
 ```
 
 ```{r, fig.width=5, fig.height=5}
-plot <- ggplot(db_card, aes(x = age_card_purchase, fill = has_card)) +
+plot1 <- ggplot(db_card, aes(x = age_card_purchase, fill = has_card)) +
   geom_density(position = "fill", alpha = 1, bw = 2) +
   scale_x_continuous(expand = c(0,0)) +
   scale_y_continuous(expand = c(0,0)) +
   labs(
     title = "Card Usage by Age",
-    x = "age of account owner (years)",
-    y = "relative proportion",
+    x = "Age (Years)",
+    y = "Relative Proportion",
     fill = element_blank()
   ) +
   theme_classic() + # change theme
-  scale_fill_manual(values = c("#f58518", "#567eb9"), labels = c('has no credit card','owns a credit card')) +
+  scale_fill_manual(
+    values = c("#f58518", "#567eb9"),
+    labels = c('has no credit card', 'owns a credit card'),
+    guide = guide_legend(override.aes = list(color = NA, size = 0))
+  ) +
   theme(legend.position = 'bottom',
-        text = element_text(size = 15), # text size
+        text = element_text(size = 12), # text size
         plot.margin = margin(5, 15, 5, 5)) # change plot margins (border)
 
-ggsave("output/proportions.pdf", plot = plot, device = "pdf", width = 5, height = 5)
-print(plot)
+ggsave("output/proportions.pdf", plot = plot1, device = "pdf", width = 5, height = 5)
+print(plot1)
   
 ```
 
 ```{r, fig.width=5, fig.height=5}
 plot <- ggplot(db_card %>% filter(has_card == "hat Kreditkarte"), aes(x = age_card_purchase, y = median_balance_before)) +
-  geom_point(alpha = 0.4) +
+  geom_point(alpha = 0.35) +
   labs(
     title = "Balance by Age",
-    x = "Age at Card Purchase", 
+    x = "Age at Card Purchase (Years)", 
     y = "Median Balance before Purchase",
     fill = "Nutzung"
   ) +
-  stat_smooth(fill="#567eb9", color="#567eb9") +
   theme_minimal() +
   annotate("segment", x=-Inf, xend=Inf, y=-Inf, yend=-Inf)+
   annotate("segment", x=-Inf, xend=-Inf, y=-Inf, yend=Inf) +
@@ -599,7 +606,7 @@ ggsave("output/relationships.pdf", plot = plot, device = "pdf", width = 5, heigh
 print(plot)
 ```
 
-```{r}
+```{r, fig.width=5, fig.height=4}
 czech_regions <- st_read("cz.json")
 
 db_card_agg <- db_card %>%  group_by(region) %>% summarize(avg_unemp = mean(avg_unemployment))
@@ -615,7 +622,9 @@ plot <- ggplot(czech_map_data) +
     fill = "Unemployment Rate (%)"
   ) +
   theme_minimal() +
-  theme(legend.position = "bottom") 
+  theme(legend.position = "bottom",
+    text = element_text(size = 12), # text size
+  )
 
 ggsave("output/geospatial.pdf", plot = plot, device = "pdf", width = 5, height = 4)
 print(plot)
@@ -639,7 +648,7 @@ plot <- ggplot(data, aes(x = reorder(region, avg_unemp), y = avg_unemp)) +
   labs(
     title = "Unemployment Rate of Czech Regions",
     x = element_blank(),
-    y = "unemployment rate"
+    y = "Unemployment Rate (%)"
   ) +
   coord_flip() +
   geom_text(aes(label = paste(round(avg_unemp, 1), '%')), hjust = -0.4, color = 'black') +
@@ -653,29 +662,6 @@ plot <- ggplot(data, aes(x = reorder(region, avg_unemp), y = avg_unemp)) +
 ggsave("output/uncertainty.pdf", plot = plot, device = "pdf", width = 5, height = 5)
 print(plot)
 ```
-
-```{r, fig.width=5, fig.height=5}
-plot1 <- ggplot(db_card, aes(x = age_card_purchase, fill = has_card)) +
-  geom_density(position = "fill", alpha = 1, bw = 2) +
-  scale_x_continuous(expand = c(0,0)) +
-  scale_y_continuous(expand = c(0,0)) +
-  labs(
-    title = "Card Usage by Age",
-    x = "age of account owner (years)",
-    y = "relative proportion",
-    fill = element_blank()
-  ) +
-  theme_classic() + # change theme
-  scale_fill_manual(values = c("#f58518", "#567eb9"), labels = c('has no credit card','owns a credit card')) +
-  theme(legend.position = 'bottom',
-        text = element_text(size = 15), # text size
-        plot.margin = margin(5, 15, 5, 5)) # change plot margins (border)
-
-ggsave("output/proportions.pdf", plot = plot1, device = "pdf", width = 5, height = 5)
-print(plot1)
-  
-```
-
 
 ```{r, fig.width=5, fig.height=5}
 # Create age categories
@@ -705,14 +691,17 @@ plot2 <- ggplot(summary_data, aes(x = age_category, y = proportion, fill = has_c
   scale_y_continuous(expand = c(0,0)) +
   labs(
     title = "Card Usage by Age Category",
-    x = "Age Category",
+    x = "Age Category (Years)",
     y = "Proportion (%)",
     fill = element_blank()
   ) +
   theme_classic() +
+  geom_hline(yintercept = 100, color = "black", size = 1) +  # black line at 100%
+  geom_text(aes(label = ifelse(proportion > 5, paste0(round(proportion, 1), "%"), "")), 
+            position = position_stack(vjust = 0.5), color = "white", fontface = "bold") +
   scale_fill_manual(values = c("#f58518", "#567eb9"), labels = c('has no credit card', 'owns a credit card')) +
   theme(legend.position = 'bottom',
-        text = element_text(size = 15),
+        text = element_text(size = 12),
         plot.margin = margin(5, 15, 5, 5),
     panel.grid.major = element_line(color = "grey90", size = 0.2),  # subtle major grid lines
     panel.grid.minor = element_line(color = "grey95", size = 0.1)   # subtle minor grid lines
@@ -730,230 +719,15 @@ ggsave("output/categorize.pdf", plot = combined_plot, device = "pdf", width = 10
 print(combined_plot)
 ```
 
-
-```{r}
-# First plot: Density plot
-plot1 <- ggplot(db_card, aes(x = age_card_purchase, fill = has_card)) +
-  geom_density(position = "fill", alpha = 1, bw = 2) +
-  scale_x_continuous(expand = c(0,0)) +
-  scale_y_continuous(expand = c(0,0)) +
-  labs(
-    title = "Card Usage by Age",
-    x = "age of account owner (years)",
-    y = "relative proportion",
-    fill = element_blank()
-  ) +
-  theme_classic() + 
-  scale_fill_manual(values = c("#f58518", "#567eb9"), labels = c('has no credit card','owns a credit card')) +
-  theme(legend.position = 'bottom',
-        text = element_text(size = 15),
-        plot.margin = margin(5, 15, 5, 5)) 
-
-# Create age categories
-db_card <- db_card %>%
-  mutate(age_category = case_when(
-    age_card_purchase <= 17 ~ "up to 17",
-    age_card_purchase >= 18 & age_card_purchase <= 39 ~ "18-39",
-    age_card_purchase >= 40 & age_card_purchase <= 64 ~ "40-64",
-    age_card_purchase >= 65 ~ "65 or older"
-  ))
-
-# Summarize the data
-summary_data <- db_card %>%
-  group_by(age_category, has_card) %>%
-  summarise(count = n()) %>%
-  ungroup() %>%
-  group_by(age_category) %>%
-  mutate(proportion = count / sum(count) * 100) %>%
-  ungroup()
-
-# Ensure the age categories are in the desired order
-summary_data$age_category <- factor(summary_data$age_category, levels = c("up to 17", "18-39", "40-64", "65 or older"))
-
-# Second plot: Stacked bar chart
-plot2 <- ggplot(summary_data, aes(x = age_category, y = proportion, fill = has_card)) +
-  geom_bar(stat = "identity") +
-  scale_y_continuous(expand = c(0,0)) +
-  labs(
-    title = "Card Usage by Age Category",
-    x = "Age Category",
-    y = "Proportion (%)",
-    fill = element_blank()
-  ) +
-  theme_classic() +
-  scale_fill_manual(values = c("#f58518", "#567eb9"), labels = c('has no credit card', 'owns a credit card')) +
-  theme(legend.position = 'bottom',
-        text = element_text(size = 15),
-        plot.margin = margin(5, 15, 5, 5),
-    panel.grid.major = element_line(color = "grey90", size = 0.2),  # subtle major grid lines
-    panel.grid.minor = element_line(color = "grey95", size = 0.1)   # subtle minor grid lines
-  )
-
-# Combine the two plots
-combined_plot <- plot1 + plot2 + plot_layout(ncol = 2)
-
-# Save the combined plot
-ggsave("output/combined_plots.pdf", plot = combined_plot, device = "pdf", width = 10, height = 5)
-
-# Display the combined plot
-print(combined_plot)
-```
-
-
-```{r}
-makeplot_mosaic <- function(data, x, y, ...){
-  xvar <- deparse(substitute(x))
-  yvar <- deparse(substitute(y))
-  mydata <- data[c(xvar, yvar)];
-  mytable <- table(mydata);
-  widths <- c(0, cumsum(apply(mytable, 1, sum)));
-  heights <- apply(mytable, 1, function(x){c(0, cumsum(x/sum(x)))});
-
-  alldata <- data.frame();
-  allnames <- data.frame();
-  for(i in 1:nrow(mytable)){
-    for(j in 1:ncol(mytable)){
-      alldata <- rbind(alldata, c(widths[i], widths[i+1], heights[j, i], heights[j+1, i]));
-    }
-  }
-  colnames(alldata) <- c("xmin", "xmax", "ymin", "ymax")
-
-  alldata[[xvar]] <- rep(dimnames(mytable)[[1]],rep(ncol(mytable), nrow(mytable)));
-  alldata[[yvar]] <- rep(dimnames(mytable)[[2]],nrow(mytable));
-
-  ggplot(alldata, aes(xmin=xmin, xmax=xmax, ymin=ymin, ymax=ymax)) + 
-    geom_rect(color="black", aes_string(fill=yvar)) +
-    xlab(paste(xvar, "(count)")) + ylab(paste(yvar, "(proportion)"));
-}
-```
-
-```{r}
-makeplot_mosaic(db_card, has_card, has_loan)
-```
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-***
-## Unterschied von Kartenbesitzer und Nichtbesitzer?
-
-***
-#### Hypothese: Kreditkartenbesitzer haben weniger Probleme mit Krediten als Nichtbesitzer.
-```{r}
-ggplot(db_card %>% filter(!is.na(loan_status)), aes(x = has_card, fill = loan_status_cat)) +
-  geom_bar(position = "fill", alpha = 0.75) +
-  labs(
-    title = "Einfluss von Kartenbesitz auf Probleme mit Krediten",
-    subtitle = "Probleme ohne Karte: 13.9%, Probleme mit Karte: 2.9% (N = 682 Kreditbesitzer)",
-    x = "Kartenbesitz",
-    y = "Relativer Anteil",
-    fill = "Kreditstatus"
-  )
-```
-Unsere Vermutung hat sich bestätigt. Entweder hat die Kreditkarte einen guten Einfluss auf Kreditbesitzer oder die Bank vergibt nur Kreditkarten an Kunden die keine Probleme mit ihrem Kredit haben.
-Dass eine Karte einen solch positiven Einfluss auf den Kreditstatus hat, ist nur schwer anzunehmen. Dass die Bank nur Kreditkarten an Personen vergibt, die keine Probleme mit ihrem Kredit haben, scheint hingegen sehr naheliegend. Deshalb schliessen wir daraus, dass dies eine Regel der Bank ist. Diese Regel scheint sinnvoll zu sein und wir übernehmen sie um potenzielle Kunden einzugrenzen. Dass von den Kreditkartenbesitzern trotzdem einige Probleme mit ihren Krediten haben, liegt vermutlich daran, dass die Kunden erst nach dem Kreditkartenkauf Probleme mit ihrem Kredit bekamen. 
-
-* **Regel 1:** Wenn ein Kunde einen Kredit hat, darf der Kunde beim Kreditkartenkauf keine Zahlungsprobleme beim Kredit haben.
-
-Die Nutzung von Krediten ist für Kreditkartenbesitzer (mit 19.1%) und Nichtbesitzer (mit 14.2%) nicht substanziell verschieden. Die Grafik dazu ist unter dem Titel **Plot-Appendix 1** im Appendix zu finden.
-
-***
-#### Hypothese: Kreditkartenbesitzer nutzen mehr Daueraufträge als Nichtbesitzer.
-
-
-```{r, fig.width = 5, fig.height = 5}
-ggplot(db_card, aes(x = has_card, fill = perm_orders)) +
-  geom_bar(position = "fill", alpha = 1) +
-  labs(
-    title = "Einfluss der Nutzung von Daueraufträgen auf Kartenbesizt",
-    subtitle = "Nutzung ohne Karte: 84.7%, Nutzung mit Karte: 78.7% (N = 4500 Bankbeziehungen)",
-    x = element_blank(),
-    y = "Relativer Anteil",
-    fill = element_blank()
-  ) +
-  theme(legend.position = 'bottom')
-```
-Unsere Hypothese ist falsch. Der Nutzung von Daueraufträgen ist bei Kreditkartenbesitzer etwas kleiner als bei Nichtbesitzern. Der Unterschied ist jedoch nicht substanziell, weshalb wir daraus keine Regel erstellen.
-
-***
-#### Hypothese: Bei jüngeren Kunden ist der Anteil an Kartenbesitzer höher. 
-```{r}
-ggplot(db_card, aes(x = age_card_purchase, fill = has_card)) +
-  geom_histogram(position = "fill", alpha = 1, binwidth = 2) +
-  scale_x_continuous(expand = c(0,0)) +
-  scale_y_continuous(expand = c(0,0)) +
-  labs(
-    title = "Kartennutzung nach Alter",
-    subtitle = "Anteil Kartenbesitzer: 19.8% (N = 4500 Bankbeziehungen)",
-    x = "Alter des Accounteigentümers (beim Kartenkauf; Median für Nichtkäufer)", 
-    y = "Relativer Anteil",
-    fill = "Nutzung"
-  ) +
-  scale_fill_manual(values = c("#0072B2", "#D55E00"), name = "Nutzung")
-```
-```{r, fig.width = 5.5, fig.height = 5.5}
-ggplot(db_card, aes(x = age_card_purchase, fill = has_card)) +
-  geom_density(position = "fill", alpha = 1, bw = 2) +
-  scale_x_continuous(expand = c(0,0)) +
-  scale_y_continuous(expand = c(0,0)) +
-  labs(
-    title = "Card Usage by Age",
-    x = "age of account owner (years)",
-    y = "relative proportion",
-    fill = element_blank()
-  ) +
-  theme_classic() + # change theme
-  scale_fill_manual(values = c("#D55E00", "#0072B2"), labels = c('has no credit card','owns a credit card')) +
-  theme(legend.position = 'bottom',
-        text = element_text(size = 15), # text size
-        plot.margin = margin(5, 15, 5, 5)) # change plot margins (border)
-  
-```
-
-
-```{r}
-ggplot(db_card, aes(x = age_card_purchase, y = ..count.., fill = has_card)) +
-  geom_density(bw = 2, alpha = 0.75) +
-  scale_fill_manual(values = c("#0072B2", "#D55E00")) +
-  scale_x_continuous(name = "age (years)", expand = c(0, 0)) +
-  scale_y_continuous(limits = c(0, 72), expand = c(0, 0), name = "scaled density") +
-  #guides(fill = guide_legend(override.aes = list(linetype = 0)))
-  coord_cartesian(clip = "off") +
-  theme(
-    axis.line.x = element_blank(),
-    legend.position = c(1, 1.05),
-    legend.justification = c("right", "top"),
-    legend.box.background = element_rect(fill = "white", color = "white"),
-    plot.margin = margin(7, 7, 3, 3)
-  ) +
-  labs(
-    title = "Card Usage vs Age",
-    fill = element_blank()
-  )
-```
-
-```{r}
-ggplot(db_card, aes(x = age_card_purchase, y = ..count.., fill = has_card)) +
-  geom_density(bw = 2, alpha = 0.75) +
-  scale_x_continuous(name = "age (years)", expand = c(0, 0)) +
-  scale_y_continuous(limits = c(0, 72), expand = c(0, 0), name = "scaled density") +
+```{r, fig.width=3, fig.height=3}
+plot <- ggplot(db_card, aes(x = age_card_purchase, y = ..count.., fill = has_card)) +
+  geom_density(bw = 2, alpha = 1) +
+  scale_x_continuous(name = "Age (Years)", expand = c(0, 0)) +
+  scale_y_continuous(limits = c(0, 72), expand = c(0, 0), name = "Scaled Density") +
   #guides(fill = guide_legend(override.aes = list(linetype = 0)))
   coord_cartesian(clip = "off") +
   theme_minimal() +
+  scale_fill_manual(values = c("hat keine Kreditkarte" = "#f58518", "hat Kreditkarte" = "#567eb9")) +
   theme(
     legend.position = "none",
     legend.justification = c("right", "top"),
@@ -968,375 +742,35 @@ ggplot(db_card, aes(x = age_card_purchase, y = ..count.., fill = has_card)) +
     fill = element_blank()
   ) +
   theme(
-    text = element_text(size = 15), # text size
+    text = element_text(size = 12), # text size
     plot.margin = margin(5, 15, 5, 5)# change plot margins (border)
   ) +
-  facet_wrap(~has_card)
+  facet_wrap(~has_card, labeller = as_labeller(c('hat keine Kreditkarte' = 'No Credit Card', 'hat Kreditkarte' = 'Owns Credit Card')), dir = "v")
+
+ggsave("output/facet.pdf", plot = plot, device = "pdf", width = 3, height = 3)
+print(plot)
 ```
 
-Unsere Hypothese ist richtig. Personen die älter als 61 Jahre alt sind, kaufen kaum mehr Kreditkarten. Für Personen unter 15 Jahren zeigt die Grafik fälschlicherweise 100% Kartenbesitz an. Dies liegt daran, dass das Alter der Nichtkäufer mithilfe vom Median des Kreditkarten-Kaufdatums errechnet wurde und es somit in den ersten 3 Jahren keine Observationen für Nichtkäufer gibt. 
 
-* **Regel 2:** Wenn eine Person älter als 61 Jahre alt ist, ist die Chance eine Kreditkarte zu verkaufen sehr gering.
 
-***
-## Veränderung vor Kreditkartenkauf
-***
-#### Hypothese: Kunden haben vor dem Kreditkartenkauf haben Geldprobleme und somit einen tiefen Kontostand
-```{r}
-ggplot(db_card_longer %>% filter(!is.na(card_type)), aes(x = time_until_card, y = balance)) +
-  geom_point(alpha = 0.07)+
-  coord_cartesian(xlim = c(-2, 2), ylim = c(0, 100000)) +
-  stat_smooth() +
-  geom_segment(aes(x = 0, y = -5000, xend = 0, yend = 105000)) +
+```{r, fig.width=3, fig.height=3}
+plot <- ggplot(db_card %>% filter(has_card == "hat Kreditkarte"), aes(x = age_card_purchase, y = median_balance_before)) +
+  geom_point(alpha = 0.4, size=0.5) +
   labs(
-    title = "Veränderung Kontostand vor und nach Kreditkartenkauf",
-    subtitle = "Monatsultimos aller Accounts mit Kreditkarte (N = 36907 Monatsultimos)",
-    x = "Zeit bis Kreditkartenkauf (in Jahren)", 
-    y = "Kontostand"
-  ) +
-  annotate("rect", xmin = -0.25, xmax = 0, ymin = -5000, ymax = 10000, fill = "red", alpha = 0.2,)
-```
-Auf der Grafik ist jeder Punkt ein Monatsultimo eines Kundens. Somit gibt es also jeden Monat einen Punkt pro Kunde. Diese Grafik sagt nichts über Schwankungen für einzelne Kunden aus, gibt jedoch einen Überblick zur durchschnittlichen Veränderung. Unsere Hypothese ist falsch. Gegenteilig zu unserer Annahme werden die Kunden im Durchschnitt vor dem Kartenkauf relativ schnell reicher. Es fällt auf, dass während 3 Monaten vor dem Kartenkauf kein Kunde einen Kontostand unter 10'000 hatte. Dies ist vermutlich eine Regel der Bank. Diese Regel wirkt sinnvoll, um unnötige Kreditkartenschulden zu vermeiden. Der von dieser Regel betroffene Bereich ist auf der Grafik rot markiert.
-
-* **Regel 3:** Der Kontostand muss für 3 Monate (0.25 Jahre) vor dem Kartenkauf mindestens 10'000 Betragen.
-
-Ausserdem sind auf der Grafik bis etwas mehr als 6 Monate vor dem Kartenkauf Monatsultimos mit einem Kontostand von weniger als 1500 relativ häufig zu sehen. Danach gibt es jedoch keine solche Observationen mehr. Um herauszufinden warum dies der Fall sein könnte, erstellen wir einen Plot der jeden Kunden als Linie darstellt. 
-```{r}
-db_card_longer_wider <- db_card_longer %>%
-  filter(!is.na(card_type)) %>% 
-  select(account_id, card_type, age_card_purchase, time_until_card, balance) %>% 
-  mutate(account_id = as.factor(account_id))
-
-ggplot(db_card_longer_wider, aes(time_until_card, balance, colour = account_id)) +
-  geom_line(alpha = 0.5) +
-  coord_cartesian(xlim = c(-1, 0), ylim = c(0, 110000)) +
-  theme(legend.position = "none") + # verhindert das Erstellen einer Legende
-  annotate("rect", xmin = -0.75, xmax = -0.65, ymin = 0, ymax = 5000, colour = "black", alpha = 0.25,) +
-  annotate("text", x = -0.6, y = 10000, label = "nächste Grafik", fontface = "bold") +
-  labs(
-    title = "Veränderung Kontostand im Jahr vor dem Kreditkartenkauf",
-    subtitle = "Eine Linie pro Account (N = 892 Konti)",
-    x = "Zeit bis Kreditkartenkauf (in Jahren)", 
-    y = "Kontostand"
-  ) +
-  theme(text=element_text(hjust = 0.1))
-```
-```{r}
-db1 = db_card_longer
-
-db1 = db1 %>% 
-  group_by(date) %>% 
-  summarize(mean_balance_change = mean(balance_change)) %>% 
-  ungroup()
-
-db1$date = as_datetime(db1$date, tz = 'UTC')
-
-db1
-
-interp <- approx(db1$date,db1$mean_balance_change, n=25000)
-
-cbi <- data.frame(date = interp$x , mean_balance_change = interp$y ) %>%
-  mutate(valence = if_else(mean_balance_change >= 0 , "positive change" , "negative change"))
-
-cbi$date = as_datetime(cbi$date, tz = 'UTC')
-
-
-cbi
-```
-
-```{r}
-ggplot(cbi, aes(x=date,y=mean_balance_change)) +
-  geom_area(aes(fill=valence)) +
-  geom_line() +
-  geom_hline(yintercept = 0) +
-  scale_x_datetime(expand = c(0,0)) +
-  scale_y_continuous(expand = c(0.02,0)) +
-  labs(
-    title = "Mean change of balance of all customers",
-    subtitle = "N = 4500 customers",
-    x = "date", 
-    y = "mean change in balance",
-    fill = element_blank()
-  ) +
-  theme_classic() +
-  theme(legend.position = c(1,1.05),
-        legend.justification = c("right", "top"),
-        plot.margin = margin(5, 5, 5, 5),
-        text = element_text(size = 15))
-
-```
-
-
-Da auf dieser Grafik trotz den Linien nicht viel zu sehen ist, erstellen wir eine herangezoomte Version davon.
-```{r}
-ggplot(db_card_longer_wider, aes(time_until_card, balance, colour = account_id)) +
-  geom_line() +
-  coord_cartesian(xlim = c(-0.75, -0.65), ylim = c(0, 5000)) +
-  theme(legend.position = "none") +
-  labs(
-    title = "Ausschnitt aus Grafik oberhalb",
-    x = "Zeit bis Kreditkartenkauf (in Jahren)", 
-    y = "Kontostand"
-  )
-```
-Man erkennt, dass die Kontostände unter 1500 in den meisten Fällen keine Linie haben, welche zum Punkt hinführt. Dies bedeutet, dass die Accounts zu diesem Zeitpunkt neu erstellt wurden und dies das erste Monatsultimo des Accounts ist. Es sieht demnach so aus, als müsste ein Konto einige Monate existieren, bevor der Kunde eine Kreditkarte kaufen kann. Mit den folgenden Plots werden wird dies genauer untersuchen.
-
-***
-#### Hypothese: Kunden kaufen die Kreditkarte am ehesten kurz nach der Kontoeröffnung 
-```{r}
-ggplot(db_card %>% filter(has_card == "hat Kreditkarte"), aes(x = card_acc_difftime)) +
-  geom_histogram(binwidth = 0.1, fill = "#00BFC4", alpha = 0.75) +
-  labs(
-    title = "Zeit bis Kartenkauf",
-    subtitle = "Anteil mit mehr als 3 Jahren: 22.1% (N = 892 Kartenbesitzer)",
-    x = "Zeit zwischen Kontoeröffnung und Kartenkauf (in Jahren)", 
-    y = "Anzahl"
-  ) +
-  theme(text = element_text(size = 15))
-```
-Die minimale Zeit zwischen Kontoeröffnung zum Kartenkauf beträgt 211 Tage (0.556 Jahre). Dies ist sehr wahrscheinlich eine Regel der Bank. Um einige Daten über einen Kunden sammeln zu können, macht es Sinn eine Weile zu warten, bevor eine Kreditkarte angeboten wird. Nach 6 Monaten kann man sicherlich besser Entscheiden, ob man jemand als Kreditkartenkunden annehmen will oder nicht. Wir übernehmen diese Regel der Bank, da sie uns sinnvoll erscheint.
-
-* **Regel 4:** Das Konto muss mindestens 200 Tage (0.548 Jahre) vor dem Kartenkauf erstellt worden sein.
-
-Die Verteilung ist rechtsschief und scheint auf den ersten Blick unsere Hypothese zu bestätigen. Jedoch hatten weniger Kunden die Möglichkeit die Karte relativ spät zu kaufen, weil der Account zum Zeitpunkt der Datenerhebung noch gar nicht so lange existierte. Deshalb erstellen wir weitere Plots um den Sachverhalt genauer anzuschauen.
-
-```{r}
-ggplot(db_card, aes(x = acc_creation_date, fill = has_card))+
-  geom_histogram(alpha = 0.75, position = "fill", binwidth = 30)+
-  labs(
-    title = "Datum Kontoeröffnung gegenüber Kartenbesitz",
-    subtitle = "Anteil Kartenbesitzer: 19.8% (N = 4500 Bankbeziehungen)",
-    x = "Datum Kontoeröffnung", 
-    y = "Relativer Anteil",
-    fill = "Nutzung"
-  )
-```
-Die Ergebnisse dieser Grafik sind sehr erstaunlich und entsprechen nicht unserer Erwartung. Der Anteil von Kartenbesitzern bleibt über die Jahre ungefähr gleich. Kunden, welche das Konto später eröffnet haben, hatten jedoch weniger Zeit zum Kauf einer Kreditkarte. Das heisst, dass neuere Kunden pro Zeiteinheit mehr Kreditkarten kaufen. Kunden mit neueren Bankkonten scheinen also generell mehr Interesse an Kreditkarten zu haben als Kunden die schon länger ein Konto bei der Bank haben. Dies wiederlegt jedoch die vordere Grafik noch nicht. Um die Die Veränderung der Frequenz and Kreditkartenkäufen besser zu veranschaulichen, erstellen wir noch eine weitere Grafik. 
-
-```{r}
-ggplot(db_card %>% filter(has_card == "hat Kreditkarte"), aes(x = acc_creation_date, y = card_creation_date))+
-  geom_point(alpha = 0.25)+
-  labs(
-    title = "Datum Kontoeröffnung gegenüber Datum Kartenkauf",
-    subtitle = "Frequenz von Kartenkäufen in den Jahren nach der Kontoeröffnung (N = 892 Kartenbesitzer)",
-    x = "Datum Kontoeröffnung",
-    y = "Datum Kartenkauf"
-  ) +
-  geom_smooth() +
-  geom_segment(
-    aes(x = as.Date("1993-01-01"), y = as.Date("1993-01-01"), xend = as.Date("1998-01-01"), yend = as.Date("1998-01-01")),
-    linetype="longdash", color = "#d92727"
-  ) +
-  geom_segment(
-    aes(x = as.Date("1993-01-01"), y = as.Date("1993-06-24"), xend = as.Date("1998-01-01"), yend = as.Date("1998-06-24")),
-    linetype="longdash", color = "#d92727"
-  ) +
-  coord_cartesian(xlim = c(as.Date("1993-01-01"), as.Date("1998-01-01")), ylim = c(as.Date("1993-01-01"),as.Date("1999-01-01"))) +
-  annotate(
-    geom = "text", 
-    x = as.Date("1995-05-01"), 
-    y = as.Date("1995-08-01"), 
-    label = "Zeitraum zwischen Kontoeröffnung und frühstmöglichem Kartenkauf", 
-    color = "#d92727", 
-    angle = 23.8
-  )
-```
-So wie es aussieht gibt es hier zwei Effekte, die sich teilweise gegenseitig Aufheben. Einerseits nahm die Frequenz von Kreditkartenkäufen mit der Zeit zu, weil Kreditkarten beliebter wurden. Andererseits nahm das Interesse eine Kreditkarte zu kaufen für Kontobesitzer mit der Anzahl Jahren nach Kontoeröffnung stetig ab. Da sich die beiden Effekte jedoch aufheben, blieb die Kartenkauffrequenz für die Kunden nach Kontoeröffnung ungefähr gleich. Allgemein gilt also:
-
-* **Regel 5:** Je später die Kontoeröffnung, desto höher die Frequenz an Kreditkartenkäufen pro Zeiteinheit.
-
-***
-## Unterscheidung von Kunden nach dem Kartenkauf
-
-Als erstes müssen wird gute und schlechte Kunden klar definieren. Welche Art von Kunde ist gut für die Bank? Man könnte nur Kunden annehmen, bei denen das Risiko einen negativen Kontostand zu haben, hoch ist. Damit könnte man Geld mit den Zinsen auf den Schulden verdienen. Wir konzentrieren uns jedoch auf die gegenteilige Kundengruppe. Die Kundengruppe mit dem kleinsten Risiko einen tiefen Kontostand zu haben. Damit verringern wir das Risiko, dass Kunden Schulden haben, die sie nicht zurückzahlen können. Zudem achten wird darauf, dass die ausgewählten Kunden einen möglichst hohes Median-Vermögen haben, da die Bank somit mehr Geld zur Verfügung hat, um Investitionen zu tätigen.
-
-***
-#### Unterschied im Median
-```{r, fig.width = 5.5, fig.height = 7}
-ggplot(db_card %>% filter(has_card == "hat Kreditkarte"), aes(x = median_balance_before, y = median_balance_after)) +
-  geom_point(alpha = 0.2) +
-  scale_x_continuous(expand = c(0,0)) +
-  scale_y_continuous(expand = c(0,0)) +
-  coord_fixed(ratio = 1, xlim = c(0, 105000), ylim = c(0, 105000)) +
-  geom_segment(aes(x = 0, y = 0, xend = 125000, yend = 125000, colour = "c. Keine Vermögensänderung")) +
-  geom_segment(aes(x = 0, y = 0, xend = 62500, yend = 125000, colour = "b. Vermögensverdoppelung ")) +
-  geom_segment(aes(x = 0, y = 0, xend = 125000, yend = 62500, colour = "a. Vermögenshalbierung")) +
-  labs(
-    title = "Vermögensänderung bei Kartenkauf",
-    subtitle = "N = 892 Bankbeziehungen",
-    x = "Median-Vermögen im Jahr vor Kartenkauf", 
-    y = "Median-Vermögen im Jahr nach Kartenkauf",
-    colour = element_blank()
-  ) +
-  theme_classic() +
-  theme(legend.position = c(0.28,-0.24),
-        plot.margin = margin(5, 10, 100, 5),
-        text = element_text(size = 15))
-```
-Auf der Grafik oberhalb vergleichen wir den Kontostand (im Median) im Jahr vor und nach dem Kartenkauf. Es fällt auf, dass es einige Kunden hat, welche Ihr Vermögen im Median mehr als verdoppelt oder mehr als halbiert haben. Der grösste Teil der Kunden befindet sich jedoch irgendwo zwischen einer Verdoppelung und Halbierung. Dies ist ein gutes Zeichen, da wir vorallem die Kontostände unterhalb einer Halbierung des medianen Vermögens verhindern wollen und dieser Anteil relativ klein ist.
-
-***
-#### Hypothese: Daueraufträge wirken sich Positiv auf die Stabilität aus.
-
-Somit sollte auch der minimale Kontostand im Jahr nach dem Kartenkauf mit Daueraufträgen höher sein als ohne.
-```{r}
-ggplot(db_card %>% filter(has_card == "hat Kreditkarte"), aes(x = min_balance_after, fill = perm_orders)) +
-  geom_density(alpha = 0.5, bw = 6000) +
-  scale_x_continuous(expand = c(0,0)) +
-  scale_y_continuous(expand = c(0,0)) +
-  labs(
-    title = "Influence of permanent order usage on minimum assets",
-    subtitle = "N = 892 accounts",
-    x = "Minimum assets in the year after card purchase", 
-    y = "Density",
-    fill = element_blank()
-  ) +
-  theme_classic() +
-  theme(
-    axis.text.y=element_blank(),
-    axis.ticks.y=element_blank(),
-    legend.position = c(1, 1.05),
-    legend.justification = c("right", "top"),
-    plot.margin = margin(5, 25 , 5 , 5),
-    text = element_text(size = 15)
-  )
-
-```
-Die Hypothese ist richtig, jedoch ist der Effekt nicht sehr ausgeprägt. Die Überlappung der beiden Gruppen ist sehr gross. Jedoch fällt auf, dass bei den sehr tiefen minimalen Vermögen der grösste Teil keine Daueraufträge nutzt. Wir haben das selbe auf für die Median-Kontostände im Jahr nach dem Kartenkauf angeschaut und haben festgestellt, dass für die Nutzer die Varianz kleiner war. Bei den sehr tiefen Median-Kontoständen nutzt der Grossteil ebenfalls keine Daueraufträge. Wir haben auch den Effekt, den die Anzahl von Daueraufträgen auf den Kontostand hat, genauer angeschaut. Wir fanden dabei jedoch keine Informationen heraus, die nicht schon bei der Grafik oben ersichtilich sind.
-
-* **Regel 6:** Wenn der Kunde keine Daueraufträge nutzt, ist das Risiko - einen tiefen Minimal-Kontostand im Jahr nach dem Kartenkauf zu haben, - grösser.
-
-***
-#### Hypothese: Je höher die Standardabweichung des Einkommens vor dem Kartenkauf, desto kleiner das minimale Vermögen nach dem Kartenkauf.
-```{r, fig.width = 7.25, fig.height = 5.5}
-ggplot(db_card %>% filter(has_card == "hat Kreditkarte"), aes(x = sd_income_before, y = min_balance_after)) +
-  geom_point(alpha = 0.2) +
-  labs(
-    title = "Einfluss Standardabweichung Einkommen auf Minimal-Vermögen",
-    subtitle = "N = 892 Kartenkäufer",
-    x = "Standardabweichung Einkommen im Jahr vor Kartenkauf", 
-    y = "Minimal-Vermögen im Jahr nach Kartenkauf",
+    title = "Balance by Age",
+    x = "Age at Card Purchase (Years)", 
+    y = "Median Balance before Purchase",
     fill = "Nutzung"
   ) +
-  stat_smooth()
-```
-Die Hypothese ist richtig. Tatsächlich hat eine höhere Standardabweichung vor dem Kartenkauf einen negativen Einfluss auf das Vermögen nach dem Kauf. Dies entspricht unserer Erwartung, weil Personen mit einem stabilen Einkommen wissen, wie viel sie verdienen werden und ihre Ausgaben daran anpassen können. Personen mit einem stark varierenen Einkommen hingegen, geben evtl. eher mal zu viel aus, weil sie weniger als erwartet verdient haben. \
-Wir haben den selben Effekt auch in der Standardabweichung der Ausgaben (sd_expenses_before) und der Standardabweichung der Veränderung des Kontostands (sd_balance_change_before) gesucht. Auch dort ist eine tiefe Standardabweichung von Vorteil, der Effekt ist jedoch weniger Stark und nicht nützlich zur einfachen Eingrenzung einer guten Kundengruppe. Wir haben ebenfalls alle soeben erwähnten Standardabweichungen (sd_income_before, sd_expenses_before, sd_balance_change_before) dem medianen Vermögen im Jahr nach dem Kartenkauf (median_balance_after) entgegengestellt. Auch dort war eine tiefere Standardabweichung generell besser, doch auch da war der Effekt weniger ausgeprägt als bei der Grafik oben. Da die Grafik die bei einer tiefen Standardabweichung ein relativ hohes durchschnittliches minimales Vermögen im Jahr nach dem Kartenkauf aufweist, erstellen wir daraus eine Regel. Bei der nächsten Grafik haben wir 12500 als Grenzwert für die Regel eingesetzt.
-
-```{r}
-ggplot(db_card %>% filter(has_card == "hat Kreditkarte"), aes(fill = sd_income_before_cat, x = min_balance_after)) +
-  geom_density(alpha = 0.5) +
-  labs(
-    title = "Einfluss Standardabweichung Einkommen auf Minimal-Vermögen",
-    subtitle = "N = 892 Kartenkäufer",
-    x = "Minimal-Vermögen im Jahr nach Kartenkauf", 
-    y = "Dichte",
-    fill = "Grenzwert der Regel"
-  ) +
+  stat_smooth(fill="#567eb9", color="#567eb9") +
+  theme_minimal() +
+  annotate("segment", x=-Inf, xend=Inf, y=-Inf, yend=-Inf)+
+  annotate("segment", x=-Inf, xend=-Inf, y=-Inf, yend=Inf) +
   theme(
-    axis.text.y=element_blank(),
-    axis.ticks.y=element_blank(),
-    legend.position = c(1, 1.05),
-    legend.justification = c("right", "top")
+    text = element_text(size = 12), # text size
   )
+
+
+ggsave("output/layers.pdf", plot = plot, device = "pdf", width = 3, height = 3)
+print(plot)
 ```
-Bei der Gruppe mit der höheren Standardabweichung ist der Anteil Kunden mit einem sehr tiefen Minimal-Vermögen im Jahr nach dem Kartenkauf deutlich höher. Die Regel ist demnach gut darin, die erwünschten von den unerwünschten Kunden zu trennen.
-
-* **Regel 7:** Wenn die Standardabweichung des Einkommens im Jahr vor dem Kartenkauf mehr als 12500 ist, bietet der Kunde ein hohes Risiko im Jahr nach dem Kartenkauf ein tiefes Minimal-Vermögen zu haben.
-
-***
-#### Hypothese: Personen mit einem höheren Einkommen vor dem Kartenkauf, haben ein höheres Vermögen nach dem Kartenkauf.
-```{r}
-ggplot(db_card %>% filter(has_card == "hat Kreditkarte"), aes(x = median_income_before, y = median_balance_after)) +
-  geom_point(alpha = 0.2) +
-  stat_smooth() +
-  labs(
-    title = "Median-Einkommen vor Kauf vs. Median-Vermögen danach",
-    subtitle = "N = 892 Kartenkäufer",
-    x = "Median-Einkommen im Jahr vor Kartenkauf", 
-    y = "Median-Vermögen im Jahr nach Kartenkauf"
-  )
-```
-Es gibt ein schwach positives Verhältnis zwischen den Variabeln. Jedoch ist das Verhältnis viel weniger ausgeprägt als angenommen. Wenn man im Gegensatz dazu das Median-Einkommen im Jahr vor dem Kartenkauf mit dem Median-Vermögen im Jahr vor dem Kartenkauf vergleicht, ist ein viel stärkeres positives Verhältnis ersichtlich. Die Grafik dazu ist unter dem Titel **Plot-Appendix 2** im Appendix zu finden. 
-
-***
-#### Hypothese: Kunden mit einem Disponent haben nach dem Kartenkauf einen höheren Minimal-Kontostand
-```{r}
-ggplot(db_card %>% filter(has_card == "hat Kreditkarte"), aes(fill = has_disponent, x = min_balance_after)) +
-  geom_density(alpha = 0.5) +
-  labs(
-    title = "Einfluss des Disponents auf das Minimal-Vermögen ",
-    subtitle = "N = 892 Kartenkäufer",
-    x = "Minimal-Vermögen im Jahr nach Kartenkauf", 
-    y = "Dichte",
-    fill = "Disponent"
-  ) +
-  theme(
-    axis.text.y=element_blank(),
-    axis.ticks.y=element_blank()
-  )
-```
-Die Hypothese ist falsch. Der Disponent hat keinen starken Einfluss auf das Minimal-Vermögen im Jahr nach dem Kartenkauf.
-
-***
-#### Hypothese: Je länger eine Person vor dem Kartenkauf den Account hat, desto höher ist das Minimal-Vermögen im Jahr nach dem Kartenkauf.
-```{r}
-ggplot(db_card %>% filter(has_card == "hat Kreditkarte"), aes(x = card_acc_difftime, y = min_balance_after)) +
-  geom_point(alpha = 0.3) +
-  stat_smooth() +
-  labs(
-    title = "Einfluss vom Accountalter auf das Minimal-Vermögen im Jahr danach",
-    subtitle = "N = 892 Kartenkäufer",
-    x = "Zeit zwischen Kontoeröffnung und Kartenkauf (in Jahren)", 
-    y = "Minimal-Vermögen im Jahr nach Kartenkauf"
-  )
-```
-Die Hypothese ist richtig. Allgemein sind Personen im Minimum mit mehr Wartezeit zwischen Kontoeröffnung und Kartenkauf reicher. Wenn wir das Minimum des Kontostandes nach dem Kartenkauf für Personen mit Zeitdifferenz unter einem Jahr genauer anschauen, fällt auf, dass alle negativen Kontostände in diesem Zeitraum sind. Wenn wir also verhindern wollen, dass Personen nach dem Kreditkartenkauf einen negativen Kontostand haben, dann macht es Sinn die Mindestzeit bis zum Kauf einer Kreditkarte auf ein Jahr zu erhöhen.
-
-* **Regel 4 (Bearbeitet):** Das Konto muss mindestens 1 Jahr vor dem Kartenkauf erstellt werden, um das Risiko negativer Kontostände zu verringern.
-
-Wir haben auch den Effekt der Wartezeit zwischen Kontoeröffnung und Kartenkauf dem Median-Vermögen im Jahr vor und nach dem Kartenkauf gegenübergestellt. Auch dort herrscht ein schwach positiver Zusammenhang, die Information ist jedoch nicht weiter relevant.
-
-***
-#### Hypothese: Die Bezirksdaten sind nicht aussagekräftig.
-Die Hypothese ist korrekt. Wir haben die Bezirksdaten, dh. avg_crime_rate_per_1000, ratio_urban_pop, avg_unemployment, enterpreneurs_per_1000, region und inhabitants, je folgenden Variabeln gegenübergestellt: has_card, min_balance_after und median_balance_after. Wir haben also untersucht, ob irgendwelche Bezirksdaten den Anteil an Kartenbesitzer, den Minimal-Kontostand oder den Median-Kontostand vorhersagen können. Im **Plot-Appendix 3** und im **Plot-Appendix 4** zeigen wir am Beispiel von avg_crime_rate_per_1000 wie wir dies untersucht haben. Man konnte auf keiner der erstellten Grafiken einen Effekt sehen.
-
-***
-## Welche Karte soll welchen Kunden Angeboten werden?
-
-Wir haben jetzt einige Regeln zum auswählen von allfälligen Kreditkartenkunden erstellt. Jetzt müssen wir noch herausfinden, wem wir welche Kreditkarte anbieten wollen.
-
-***
-#### Hypothese: Die Junior-Karte wird wird nur jugentlichen Kunden angeboten.
-```{r}
-ggplot(db_card %>% filter(has_card == "hat Kreditkarte"), aes(x = age_card_purchase, y = ..count.., fill = card_type)) +
-  geom_density(alpha = 0.5, bw = 0.7) + # position = "fill", 
-  labs(
-    title = "Kreditkartentyp nach Alter",
-    subtitle = "Anteil gold Karten: 9.9% (N = 892 Kreditkartenbesitzer)",
-    x = "Alter des Accounteigentümers (beim Kartenkauf)", 
-    y = "Anzahl Kunden pro Kreditkartentyp",
-    fill = "Kartentyp"
-  )
-```
-Die Hypothese ist richtig. Im Alter von 12 - 19 Jahren wird die Junior-Karte angeboten. Im 20sten Lebensjahr bietet die Bank vermutlich den Wechsel von Junior zu Gold oder Classic an.
-
-* **Regel 8:** Wenn Jemand jünger als 20 Jahre alt ist, wird die Junior-Karte angeboten.
-
-Damit haben wir genügend um die Junior-Kartenhalter eindeutig abzutrennen. Im Folgenden konzentrieren wir uns also nur noch auf den Unterschied der Gold- und Classic-Karten.
-
-***
-#### Hypothese: Gold-Karten-Besitzer sind reicher als Classic-Karten-Besitzer.
-```{r}
-ggplot(db_card %>% filter(has_card == "hat Kreditkarte", card_type != "junior"), aes(x = median_balance_before, y = ..count.., fill = card_type)) +
-  geom_density(bw = 2000, alpha = 0.5) +
-  scale_x_continuous(labels = scales::comma)+ # position = "fill", 
-  labs(
-    title = "Kreditkartentyp nach Median-Vermögen im Jahr vor Kauf",
-    subtitle = "Anteil gold Karten über 60'000: 47.8% (N = 892 Kreditkartenbesitzer)",
-    x = "Median-Vermögen im Jahr vor Kartenkauf", 
-    y = "Anzahl Kunden pro Kreditkartentyp",
-    fill = "Kartentyp"
-  )
-```
-Die Hypothese ist richtig. Jedoch gibt es keine klare Grenze.  Da wir den Unterschied der beiden Kartentypen nicht kennen, ist es schwierig hier eine sinnvolle Entscheidung zu treffen. Da auch Kunden mit einem relativ tiefen Median-Vermögen im Jahr vor dem Kartenkauf teilweise Gold-Karten besitzen, scheint dies auch für solche Kunden möglich, aber vielleicht nicht lohnenswert zu sein. Ab einem Median-Vermögen von 60000 steigt der Anteil von Gold-Karten-Besitzern und somit vermutlich das Interesse an Gold-Karten an. Deshalb wählen wir dies als weitere Regel.
