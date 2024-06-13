@@ -9,7 +9,7 @@ R-Version: **[Default] [64-bit] C:\\Program Files\\R\\R-4.0.2**
 #### installation and loading of packages
 ```{r message=FALSE, warning=FALSE}
 
-packages <- c("tidyverse", "data.table", "lubridate", "ggplot2", "ggthemes", "svglite", "sf")
+packages <- c("tidyverse", "data.table", "lubridate", "ggplot2", "ggthemes", "svglite", "sf", "patchwork")
 
 # Install all the required packages if not yet installed
 installed_packages <- packages %in% rownames(installed.packages())
@@ -521,6 +521,7 @@ plot <- ggplot(
   )
 
 ggsave("output/amounts.pdf", plot = plot, device = "pdf", width = 5, height = 5)
+print(plot)
 ```
 
 
@@ -551,6 +552,7 @@ plot <- ggplot(db_card, aes(x = age_card_purchase, y = ..count..)) +
   )
 
 ggsave("output/distributions.pdf", plot = plot, device = "pdf", width = 5, height = 5)
+print(plot)
 ```
 
 ```{r, fig.width=5, fig.height=5}
@@ -571,6 +573,7 @@ plot <- ggplot(db_card, aes(x = age_card_purchase, fill = has_card)) +
         plot.margin = margin(5, 15, 5, 5)) # change plot margins (border)
 
 ggsave("output/proportions.pdf", plot = plot, device = "pdf", width = 5, height = 5)
+print(plot)
   
 ```
 
@@ -585,11 +588,15 @@ plot <- ggplot(db_card %>% filter(has_card == "hat Kreditkarte"), aes(x = age_ca
   ) +
   stat_smooth(fill="#567eb9", color="#567eb9") +
   theme_minimal() +
+  annotate("segment", x=-Inf, xend=Inf, y=-Inf, yend=-Inf)+
+  annotate("segment", x=-Inf, xend=-Inf, y=-Inf, yend=Inf) +
   theme(
     text = element_text(size = 12), # text size
   )
 
+
 ggsave("output/relationships.pdf", plot = plot, device = "pdf", width = 5, height = 5)
+print(plot)
 ```
 
 ```{r}
@@ -611,18 +618,8 @@ plot <- ggplot(czech_map_data) +
   theme(legend.position = "bottom") 
 
 ggsave("output/geospatial.pdf", plot = plot, device = "pdf", width = 5, height = 4)
+print(plot)
 ```
-
-
-```{r}
-czech_regions <- st_read("cz.json", )
-```
-
-```{r}
-czech_regions
-```
-
-
 
 ```{r, fig.width=5, fig.height=5}
 
@@ -654,8 +651,153 @@ plot <- ggplot(data, aes(x = reorder(region, avg_unemp), y = avg_unemp)) +
   )
 
 ggsave("output/uncertainty.pdf", plot = plot, device = "pdf", width = 5, height = 5)
+print(plot)
 ```
 
+```{r, fig.width=5, fig.height=5}
+plot1 <- ggplot(db_card, aes(x = age_card_purchase, fill = has_card)) +
+  geom_density(position = "fill", alpha = 1, bw = 2) +
+  scale_x_continuous(expand = c(0,0)) +
+  scale_y_continuous(expand = c(0,0)) +
+  labs(
+    title = "Card Usage by Age",
+    x = "age of account owner (years)",
+    y = "relative proportion",
+    fill = element_blank()
+  ) +
+  theme_classic() + # change theme
+  scale_fill_manual(values = c("#f58518", "#567eb9"), labels = c('has no credit card','owns a credit card')) +
+  theme(legend.position = 'bottom',
+        text = element_text(size = 15), # text size
+        plot.margin = margin(5, 15, 5, 5)) # change plot margins (border)
+
+ggsave("output/proportions.pdf", plot = plot1, device = "pdf", width = 5, height = 5)
+print(plot1)
+  
+```
+
+
+```{r, fig.width=5, fig.height=5}
+# Create age categories
+db_card <- db_card %>%
+  mutate(age_category = case_when(
+    age_card_purchase <= 17 ~ "up to 17",
+    age_card_purchase >= 18 & age_card_purchase <= 39 ~ "18-39",
+    age_card_purchase >= 40 & age_card_purchase <= 64 ~ "40-64",
+    age_card_purchase >= 65 ~ "65 or older"
+  ))
+
+# Summarize the data
+summary_data <- db_card %>%
+  group_by(age_category, has_card) %>%
+  summarise(count = n()) %>%
+  ungroup() %>%
+  group_by(age_category) %>%
+  mutate(proportion = count / sum(count) * 100) %>%
+  ungroup()
+
+# Ensure the age categories are in the desired order
+summary_data$age_category <- factor(summary_data$age_category, levels = c("up to 17", "18-39", "40-64", "65 or older"))
+
+# Plot the summarized data as a stacked bar chart with proportions
+plot2 <- ggplot(summary_data, aes(x = age_category, y = proportion, fill = has_card)) +
+  geom_bar(stat = "identity") +
+  scale_y_continuous(expand = c(0,0)) +
+  labs(
+    title = "Card Usage by Age Category",
+    x = "Age Category",
+    y = "Proportion (%)",
+    fill = element_blank()
+  ) +
+  theme_classic() +
+  scale_fill_manual(values = c("#f58518", "#567eb9"), labels = c('has no credit card', 'owns a credit card')) +
+  theme(legend.position = 'bottom',
+        text = element_text(size = 15),
+        plot.margin = margin(5, 15, 5, 5),
+    panel.grid.major = element_line(color = "grey90", size = 0.2),  # subtle major grid lines
+    panel.grid.minor = element_line(color = "grey95", size = 0.1)   # subtle minor grid lines
+  )
+# Save the plot
+ggsave("output/age_categories_proportions.pdf", plot = plot2, device = "pdf", width = 5, height = 5)
+
+# Display the plot
+print(plot2)
+```
+
+```{r, fig.width=10, fig.height=5}
+combined_plot <- plot1 + plot2 + plot_layout(ncol = 2)
+ggsave("output/categorize.pdf", plot = combined_plot, device = "pdf", width = 10, height = 5)
+print(combined_plot)
+```
+
+
+```{r}
+# First plot: Density plot
+plot1 <- ggplot(db_card, aes(x = age_card_purchase, fill = has_card)) +
+  geom_density(position = "fill", alpha = 1, bw = 2) +
+  scale_x_continuous(expand = c(0,0)) +
+  scale_y_continuous(expand = c(0,0)) +
+  labs(
+    title = "Card Usage by Age",
+    x = "age of account owner (years)",
+    y = "relative proportion",
+    fill = element_blank()
+  ) +
+  theme_classic() + 
+  scale_fill_manual(values = c("#f58518", "#567eb9"), labels = c('has no credit card','owns a credit card')) +
+  theme(legend.position = 'bottom',
+        text = element_text(size = 15),
+        plot.margin = margin(5, 15, 5, 5)) 
+
+# Create age categories
+db_card <- db_card %>%
+  mutate(age_category = case_when(
+    age_card_purchase <= 17 ~ "up to 17",
+    age_card_purchase >= 18 & age_card_purchase <= 39 ~ "18-39",
+    age_card_purchase >= 40 & age_card_purchase <= 64 ~ "40-64",
+    age_card_purchase >= 65 ~ "65 or older"
+  ))
+
+# Summarize the data
+summary_data <- db_card %>%
+  group_by(age_category, has_card) %>%
+  summarise(count = n()) %>%
+  ungroup() %>%
+  group_by(age_category) %>%
+  mutate(proportion = count / sum(count) * 100) %>%
+  ungroup()
+
+# Ensure the age categories are in the desired order
+summary_data$age_category <- factor(summary_data$age_category, levels = c("up to 17", "18-39", "40-64", "65 or older"))
+
+# Second plot: Stacked bar chart
+plot2 <- ggplot(summary_data, aes(x = age_category, y = proportion, fill = has_card)) +
+  geom_bar(stat = "identity") +
+  scale_y_continuous(expand = c(0,0)) +
+  labs(
+    title = "Card Usage by Age Category",
+    x = "Age Category",
+    y = "Proportion (%)",
+    fill = element_blank()
+  ) +
+  theme_classic() +
+  scale_fill_manual(values = c("#f58518", "#567eb9"), labels = c('has no credit card', 'owns a credit card')) +
+  theme(legend.position = 'bottom',
+        text = element_text(size = 15),
+        plot.margin = margin(5, 15, 5, 5),
+    panel.grid.major = element_line(color = "grey90", size = 0.2),  # subtle major grid lines
+    panel.grid.minor = element_line(color = "grey95", size = 0.1)   # subtle minor grid lines
+  )
+
+# Combine the two plots
+combined_plot <- plot1 + plot2 + plot_layout(ncol = 2)
+
+# Save the combined plot
+ggsave("output/combined_plots.pdf", plot = combined_plot, device = "pdf", width = 10, height = 5)
+
+# Display the combined plot
+print(combined_plot)
+```
 
 
 ```{r}
