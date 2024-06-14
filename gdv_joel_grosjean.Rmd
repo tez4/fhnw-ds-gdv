@@ -774,3 +774,29 @@ plot <- ggplot(db_card %>% filter(has_card == "hat Kreditkarte"), aes(x = age_ca
 ggsave("output/layers.pdf", plot = plot, device = "pdf", width = 3, height = 3)
 print(plot)
 ```
+
+```{r, fig.width=5, fig.height=3}
+czech_regions <- st_read("cz.json")
+
+db_card_agg <- db_card %>%  group_by(region) %>% summarize(avg_unemp = mean(avg_unemployment))
+
+czech_map_data <- czech_regions %>%
+  left_join(db_card_agg, by = c("name" = "region"))
+
+plot <- ggplot(czech_map_data) +
+  geom_sf(aes(fill = avg_unemp), color = "white") +
+  scale_fill_gradient(low = "#cfe6ee", high = "#567eb9", na.value = "#888888") +
+  theme_minimal() +
+  theme(
+    legend.position = "none", # Hide the legend
+    panel.grid = element_blank(), # Hide the grid
+    axis.title.x = element_blank(), # Hide x-axis label
+    axis.title.y = element_blank(), # Hide y-axis label
+    axis.text.x = element_blank(), # Hide x-axis text
+    axis.text.y = element_blank(), # Hide y-axis text
+    text = element_text(size = 12) # Text size
+  )
+
+ggsave("output/title_image.pdf", plot = plot, device = "pdf", width = 5, height = 3)
+print(plot)
+```
